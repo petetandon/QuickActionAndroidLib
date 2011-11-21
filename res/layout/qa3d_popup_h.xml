@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+	xmlns:qa3d="qa3d"
+	android:layout_width="wrap_content" android:layout_height="wrap_content">
+
+	<ScrollView android:id="@+id/scroller"
+		android:layout_marginTop="10dp" android:layout_width="wrap_content"
+		android:layout_height="wrap_content" android:background="@drawable/qa3d_popup_bg"
+		android:fadingEdgeLength="5dip" android:scrollbars="horizontal">
+
+		<LinearLayout android:id="@+id/tracks"
+			android:orientation="horizontal" android:layout_width="wrap_content"
+			android:layout_height="fill_parent" android:layout_weight="1"
+			android:padding="10dip" />
+
+	</ScrollView>
+
+
+
+<net.londatiga.android.TriangleView qa3d:direction="0"
+		android:id="@+id/arrow_up" android:layout_width="10dp"
+		android:layout_height="10dp" android:layout_marginLeft="5dp"
+		android:layout_marginRight="5dp" />
+
+<net.londatiga.android.TriangleView
+	android:layout_below="@id/scroller" qa3d:direction="1"
+		android:id="@+id/arrow_down" android:layout_width="10dp"
+		android:layout_height="10dp" android:layout_marginLeft="5dp"
+		android:layout_marginRight="5dp" />
+
+
+
+<!-- 
+
+	<ImageView android:id="@+id/arrow_up" android:layout_width="wrap_content"
+		android:layout_height="wrap_content" android:src="@drawable/qa3d_arrow_up" />
+
+	<ImageView android:id="@+id/arrow_down" android:layout_width="wrap_content"
+		android:layout_height="wrap_content" android:layout_below="@id/scroller"
+		android:layout_marginTop="-4dip" android:src="@drawable/qa3d_arrow_down" />
+ -->
+</RelativeLayout>

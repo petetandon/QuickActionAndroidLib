@@ -4,24 +4,21 @@ import java.util.ArrayList;
 import java.util.List;
 
 import android.content.Context;
-
 import android.graphics.Rect;
 import android.graphics.drawable.Drawable;
-
-import android.widget.ImageView;
-import android.widget.TextView;
-import android.widget.PopupWindow.OnDismissListener;
-
+import android.os.Build;
 import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.view.ViewGroup;
 import android.view.ViewGroup.LayoutParams;
-
 import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
 import android.view.animation.Interpolator;
+import android.widget.ImageView;
+import android.widget.PopupWindow.OnDismissListener;
+import android.widget.TextView;
 
 /**
  * QuickAction dialog.
@@ -32,8 +29,7 @@ import android.view.animation.Interpolator;
  * - Kevin Peck <kevinwpeck@gmail.com>
  */
 public class QuickAction extends PopupWindows implements OnDismissListener {
-	private ImageView mArrowUp;
-	private ImageView mArrowDown;
+	private View mArrowUp, mArrowDown;
 	private Animation mTrackAnim;
 	private LayoutInflater inflater;
 	private ViewGroup mTrack;
@@ -42,11 +38,14 @@ public class QuickAction extends PopupWindows implements OnDismissListener {
 	
 	private List<ActionItem> mActionItemList = new ArrayList<ActionItem>();
 	
+	private int defaultWidth = 320;
+	
 	private boolean mDidAction;
 	private boolean mAnimateTrack;
 	
 	private int mChildPos;    
     private int mAnimStyle;
+	private boolean isTablet = false;
     
 	public static final int ANIM_GROW_FROM_LEFT = 1;
 	public static final int ANIM_GROW_FROM_RIGHT = 2;
@@ -74,12 +73,32 @@ public class QuickAction extends PopupWindows implements OnDismissListener {
 	            return 1.2f - inner * inner;
 	        }
 		});
-	        
+		int apiLevel = -1;
+		try {
+			apiLevel = Build.VERSION.class.getField("SDK_INT").getInt(null);
+		} catch (Exception e) {
+			apiLevel = Integer.parseInt(Build.VERSION.SDK);
+		}
+
+		if (apiLevel >= 11 && apiLevel <=13) {
+			isTablet  = true;
+		}
+		determineWidth();
 		setRootViewId(R.layout.quickaction);
 		
 		mAnimStyle		= ANIM_AUTO;
 		mAnimateTrack	= true;
 		mChildPos		= 0;
+	}
+	
+	private void determineWidth(){
+		if (isTablet){
+			defaultWidth = 320;
+		} else {
+			int screenWidth 	= mWindowManager.getDefaultDisplay().getWidth();
+			int screenHeight 	= mWindowManager.getDefaultDisplay().getHeight();
+			defaultWidth = Math.min(screenWidth, screenHeight);
+		}
 	}
 	
 	/**
@@ -102,13 +121,13 @@ public class QuickAction extends PopupWindows implements OnDismissListener {
 		mRootView	= (ViewGroup) inflater.inflate(id, null);
 		mTrack 		= (ViewGroup) mRootView.findViewById(R.id.tracks);
 
-		mArrowDown 	= (ImageView) mRootView.findViewById(R.id.arrow_down);
-		mArrowUp 	= (ImageView) mRootView.findViewById(R.id.arrow_up);
+		mArrowDown 	= (View) mRootView.findViewById(R.id.arrow_down);
+		mArrowUp 	= (View) mRootView.findViewById(R.id.arrow_up);
 
 		//This was previously defined on show() method, moved here to prevent force close that occured
 		//when tapping fastly on a view to show quickaction dialog.
 		//Thanx to zammbi (github.com/zammbi)
-		mRootView.setLayoutParams(new LayoutParams(LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT));
+		mRootView.setLayoutParams(new LayoutParams(defaultWidth, LayoutParams.WRAP_CONTENT));
 		
 		setContentView(mRootView);
 	}
@@ -196,6 +215,12 @@ public class QuickAction extends PopupWindows implements OnDismissListener {
 		mItemClickListener = listener;
 	}
 	
+	@Override
+	protected void preShow() {
+		super.preShow();
+		mWindow.setWidth(defaultWidth);
+	}
+	
 	/**
 	 * Show popup mWindow
 	 */
@@ -211,27 +236,36 @@ public class QuickAction extends PopupWindows implements OnDismissListener {
 		Rect anchorRect 	= new Rect(location[0], location[1], location[0] + anchor.getWidth(), location[1] 
 		                	+ anchor.getHeight());
 
-		//mRootView.setLayoutParams(new LayoutParams(LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT));
-		mRootView.measure(LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT);
+//		mRootView.setLayoutParams(new LayoutParams(LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT));
+		mRootView.measure(defaultWidth, LayoutParams.WRAP_CONTENT);
 		
-		int rootWidth 		= mRootView.getMeasuredWidth();
+		int rootWidth 		= defaultWidth; // mRootView.getMeasuredWidth();
 		int rootHeight 		= mRootView.getMeasuredHeight();
 
 		int screenWidth 	= mWindowManager.getDefaultDisplay().getWidth();
-		//int screenHeight 	= mWindowManager.getDefaultDisplay().getHeight();
+		int screenHeight 	= mWindowManager.getDefaultDisplay().getHeight();
 
 		int xPos 			= (screenWidth - rootWidth) / 2;
-		int yPos	 		= anchorRect.top - rootHeight;
+		int yPos	 		= anchorRect.bottom;
+		int arrowMarginLeft = 50, 
+			centerX = anchorRect.centerX(); 
 
-		boolean onTop		= true;
+		if ((centerX + rootWidth) > screenWidth){
+			xPos = screenWidth - rootWidth;
+			arrowMarginLeft = centerX - xPos ;
+		} else {
+			xPos = centerX - arrowMarginLeft;
+		}
 		
-		// display on bottom
-		if (rootHeight > anchor.getTop()) {
-			yPos 	= anchorRect.bottom;
-			onTop	= false;
+		boolean onTop		= false;
+		
+		// display on top cuz item is too low
+		if ((rootHeight + anchorRect.bottom) > screenHeight) {
+			yPos 	= anchorRect.top - rootHeight;
+			onTop	= true;
 		}
 
-		showArrow(((onTop) ? R.id.arrow_down : R.id.arrow_up), anchorRect.centerX());
+		showArrow(((onTop) ? R.id.arrow_down : R.id.arrow_up), arrowMarginLeft);
 		
 		setAnimationStyle(screenWidth, anchorRect.centerX(), onTop);
 	
@@ -292,7 +326,7 @@ public class QuickAction extends PopupWindows implements OnDismissListener {
         
         ViewGroup.MarginLayoutParams param = (ViewGroup.MarginLayoutParams)showArrow.getLayoutParams();
         
-        param.leftMargin = requestedX - arrowWidth / 2;
+        param.leftMargin = (requestedX - (arrowWidth / 2));
       
         hideArrow.setVisibility(View.INVISIBLE);
     }
