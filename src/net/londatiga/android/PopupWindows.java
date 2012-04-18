@@ -3,6 +3,7 @@ package net.londatiga.android;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
 
+import android.os.Handler;
 import android.view.LayoutInflater;
 import android.view.MotionEvent;
 import android.view.View;
@@ -24,6 +25,10 @@ public class PopupWindows {
 	protected View mRootView;
 	protected Drawable mBackground = null;
 	protected WindowManager mWindowManager;
+	/**
+	 * Hides after milliseconds
+	 */
+	int autoHideMilliSeconds = 0;
 	
 	/**
 	 * Constructor.
@@ -49,6 +54,23 @@ public class PopupWindows {
 
 		mWindowManager = (WindowManager) context.getSystemService(Context.WINDOW_SERVICE);
 	}
+	
+	public void setHideAfter(int ms){
+		this.autoHideMilliSeconds = ms;
+	}
+	
+	protected void postShow(View anchor) {
+		if (autoHideMilliSeconds > 1000){
+			new Handler().postDelayed(new Runnable() {
+				
+				@Override
+				public void run() {
+					dismiss();
+				}
+			}, autoHideMilliSeconds);
+		}
+	}
+	
 	
 	/**
 	 * On dismiss

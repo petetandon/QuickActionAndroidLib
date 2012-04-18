@@ -272,6 +272,7 @@ public class QuickAction extends PopupWindows implements OnDismissListener {
 		mWindow.showAtLocation(anchor, Gravity.NO_GRAVITY, xPos, yPos);
 		
 		if (mAnimateTrack) mTrack.startAnimation(mTrackAnim);
+		super.postShow(anchor);
 	}
 
 	/**

@@ -310,6 +310,7 @@ public class QuickAction3D extends PopupWindows implements OnDismissListener {
 		setAnimationStyle(screenWidth, anchorRect.centerX(), onTop);
 
 		mWindow.showAtLocation(anchor, Gravity.NO_GRAVITY, xPos, yPos);
+		super.postShow(anchor);
 	}
 
 	/**

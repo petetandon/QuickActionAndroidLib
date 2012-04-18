@@ -209,6 +209,7 @@ public class QuickActionGrid extends PopupWindows {
 
 		if (animateTrack)
 			mTrack.startAnimation(mTrackAnim);
+		super.postShow(anchor);
 	}
 
 	/**
